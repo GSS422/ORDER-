@@ -1,0 +1,301 @@
+
+CODIGOS PRONTOS UNITY
+Camera
+
+using UnityEngine;
+
+public class MouseLook : MonoBehaviour
+{
+    public float mouseSensitivity = 100f;
+    public Transform playerBody;
+
+    float xRotation = 0f;
+
+    void Start()
+    {
+        Cursor.lockState = CursorLockMode.Locked;
+    }
+
+    void Update()
+    {
+        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
+        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
+
+        xRotation -= mouseY;
+        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
+
+        transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+        playerBody.Rotate(Vector3.up * mouseX);
+    }
+}
+
+
+MOVIMENTO 
+
+
+using UnityEngine;
+
+public class PlayerMovement : MonoBehaviour
+{
+    public float speed = 5f;
+    public float gravity = -9.81f;
+    public float jumpHeight = 1.5f;
+    public Transform cam;
+
+    CharacterController controller;
+    Vector3 velocity;
+    bool isGrounded;
+
+    void Start()
+    {
+        controller = GetComponent<CharacterController>();
+        Cursor.lockState = CursorLockMode.Locked; // trava o cursor no centro
+    }
+
+    void Update()
+    {
+        // Checa se está no chão
+        isGrounded = controller.isGrounded;
+        if (isGrounded && velocity.y < 0)
+            velocity.y = -2f;
+
+        // Movimento WASD
+        float x = Input.GetAxis("Horizontal");
+        float z = Input.GetAxis("Vertical");
+
+        Vector3 move = transform.right * x + transform.forward * z;
+        controller.Move(move * speed * Time.deltaTime);
+
+        // Pulo
+        if (Input.GetButtonDown("Jump") && isGrounded)
+            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+
+        // Gravidade
+        velocity.y += gravity * Time.deltaTime;
+        controller.Move(velocity * Time.deltaTime);
+    }
+}
+TIRO 
+using UnityEngine;
+
+public class Gun : MonoBehaviour
+{
+    public float damage = 10f;
+    public float range = 100f;
+    public float damage2 = 10f;
+    public float range2 = 100f;
+    public Camera fpsCam;
+    public ParticleSystem tirodoze;
+    public AudioSource tiro;
+    public ParticleSystem tirodoze2;
+    public AudioSource tiro2;
+
+    // --- Cooldowns ---
+    public float cooldown1 = 1f;  // 1 segundo para o tiro normal
+    public float cooldown2 = 5f;  // 5 segundos para o segundo tiro
+    private float nextTimeToFire1 = 0f;
+    private float nextTimeToFire2 = 0f;
+
+    void Update()
+    {
+        if (Input.GetButtonDown("Fire1") && Time.time >= nextTimeToFire1)
+        {
+            nextTimeToFire1 = Time.time + cooldown1;
+            tirodoze.Play();
+            tiro.Play();
+            Shoot();
+        }
+
+        if (Input.GetButtonDown("Fire2") && Time.time >= nextTimeToFire2)
+        {
+            nextTimeToFire2 = Time.time + cooldown2;
+            tirodoze2.Play();
+            tiro2.Play();
+            Shoot2();
+        }
+    }
+
+    void Shoot()
+    {
+        RaycastHit hit;
+        if (Physics.Raycast(fpsCam.transform.position, fpsCam.transform.forward, out hit, range))
+        {
+            Debug.Log("Acertou: " + hit.transform.name);
+
+            EnemyStatus target = hit.transform.GetComponent<EnemyStatus>();
+            if (target != null)
+            {
+                target.TakeDamage(damage);
+            }
+        }
+    }
+
+    void Shoot2()
+    {
+        RaycastHit hit;
+        if (Physics.Raycast(fpsCam.transform.position, fpsCam.transform.forward, out hit, range2))
+        {
+            Debug.Log("Acertou: " + hit.transform.name);
+
+            EnemyStatus target = hit.transform.GetComponent<EnemyStatus>();
+            if (target != null)
+            {
+                target.TakeDamage(damage2);
+            }
+        }
+    }
+}
+
+
+HEADBOOB
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class HeadBobbingScript : MonoBehaviour
+{
+
+    public GameObject MainCamera;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        if(Input.GetKey(KeyCode.W))
+        {
+            StartBobbing();
+        }
+
+        if(Input.GetKey(KeyCode.S))
+        {
+            StartBobbing();
+        }
+
+        if(Input.GetKey(KeyCode.A))
+        {
+            StartBobbing();
+        }
+
+        if(Input.GetKey(KeyCode.D))
+        {
+            StartBobbing();
+        }
+
+        if(Input.GetKeyUp(KeyCode.W))
+        {
+            StopBobbing();
+        }
+
+        if(Input.GetKeyUp(KeyCode.S))
+        {
+            StopBobbing();
+        }
+
+        if(Input.GetKeyUp(KeyCode.A))
+        {
+            StopBobbing();
+        }
+
+        if(Input.GetKeyUp(KeyCode.D))
+        {
+            StopBobbing();
+        }
+    }
+
+    void StartBobbing()
+    {
+        MainCamera.GetComponent<Animator>().Play("Headboobing");
+    }
+
+    void StopBobbing()
+    {
+        MainCamera.GetComponent<Animator>().Play("New State");
+    }
+}
+Troca de arma 
+using UnityEngine;
+
+public class weaponswitch : MonoBehaviour
+{
+    public int selectedWeapon = 0;
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    void Start()
+    {
+        selectWeapon();
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        int previousSelectedWeapon = selectedWeapon;
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            selectedWeapon = 0;
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            selectedWeapon = 1;
+        }
+        if (previousSelectedWeapon != selectedWeapon)
+        {
+            selectWeapon();
+        }
+    }
+    void selectWeapon()
+    {
+        int i = 0;
+        foreach (Transform weapon in transform)
+        {
+            if (i == selectedWeapon)
+                weapon.gameObject.SetActive(true);
+            else
+                weapon.gameObject.SetActive(false);
+            i++;
+        }
+    }
+}
+Status 
+using UnityEngine;
+
+public class EnemyStatus : MonoBehaviour
+{
+    public AudioSource machucado;
+    public AudioSource morte;
+    [SerializeField] private float damage = 100;
+    public float health = 100f;
+
+    public void TakeDamage(float amount)
+    {
+        health -= amount;
+        
+        if (health <= 0f)
+        {
+            // Play the death sound and then destroy the GameObject
+            if (morte != null)
+            {
+                morte.Play();
+            }
+            // Destroy the object after a short delay to allow the sound to play
+            Destroy(gameObject, 0.5f); 
+        }
+        else
+        {
+            // Play the injured sound if the enemy is still alive
+            if (machucado != null)
+            {
+                machucado.Play();
+            }
+        }
+    }
+
+    public void DealDamage(PlayerHealth player)
+    {
+        if (player != null) player.TakeDamage(damage);
+    }
+}
+
